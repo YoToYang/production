@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style class="css">
+        body,ul,ol{margin: 0; padding: 0;}
+        li{list-style: none;}
+        .wrap{
+           width: 800px;
+            margin: 100px auto;
+        }
+        .picList{
+            width: 800px;
+            height: 360px;
+            -webkit-perspective: 800px;
+            /*-webkit-perspective-origin: right;*/
+            /* 因为层级关系，本身浏览器默认是在中间看，左边的因为层级关系
+             后者盖住了前者，从中间往左边看，后面的li盖住了前面li的右侧，
+             右边的层级低的更靠近中间视点，没有被后面的盖住，所以能看见
+             侧面灰色的
+             解决办法：（1）判断是否过半，过半则改变层级关系
+             （2） 改变视点，从右边开始看，最右侧的li盖住了前面所有的右侧面；
+             但是在中间看最好
+             */
+        }
+        /* 又把景深和3dstyle加错了
+         ！！！！！！！！！！！！！！！！！！！！！！
+         */
+        .picList li{
+            width: 50px;/* 图片条宽会卡 记得改掉下面的iLiw*/
+            height: 360px;
+            position: relative;
+            /* relative:定位，默认后面的层级更高 */
+            float: left;
+            -webkit-transform-style:preserve-3d ;
+            /* li不用定位，因为li会在ul里铺满 只需要它们在同一行就行了
+            而position就满足了
+            */
+            -webkit-transform-origin: center center -180px;
+            /* 设置li的旋转基点 下面点击事件中的代码中的li每个都有，沿X翻转的时候才不会别扭，注意：还是要加上X
+            不能直接用rotate
+            */
+            /*transition:1s;翻转效果
+            写成下面点击中的延迟
+            */
+        }
+        .picList a{
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            /*  a本来就在li里，为什么还要定位,
+            因为后面图片倒了，先根据定位把图片移到上面再折叠，变成正的了
+            */
+
+        }
+        .picList li a:nth-of-type(1) {
+            background: url("img3Dslide/1.jpg") no-repeat;
+        }
+        .picList li a:nth-of-type(2) {
+
+            background: url("img3Dslide/2.jpg") no-repeat;
+            top:-360px;
+            -webkit-transform-origin: bottom;
+            -webkit-transform: rotateX(90deg);
+            /* 在点击事件中，这个图画是倒着的，但是不能再用Z旋转，因为基点已经定了，这样旋转就不对了
+            在正面的时候，由于是沿着X翻转上去的，所以已经倒了，当采取措施，先top：-360px;基点改为bottom，再折下去，
+            当点击的时候，上面的往前倒下来，就是正的了
+            */
+
+           /* -webkit-transform-origin: top;*/
+        }
+        .picList li a:nth-of-type(3) {
+            background: url("img3Dslide/3.jpg") no-repeat;
+            -webkit-transform: translateZ(-360px) rotateX(180deg);
+        }
+        .picList li a:nth-of-type(4) {
+            background: url("img3Dslide/4.jpg") no-repeat;
+            -webkit-transform: rotateX(-90deg);
+            top:360px;
+            -webkit-transform-origin: top;
+        }
+        /* 拼出了四个面 */
+        .picList li span{
+            position: absolute;
+            width: 360px;
+            height: 360px;
+          /*  color: #fff;
+            font:20px/40px Arail;
+            text-align: center;*/
+            background: #CCCCCC;
+        }
+        .picList li span:nth-of-type(1){
+            -webkit-transform-origin: left;
+            -webkit-transform: rotateY(90deg);
+            /* 转到左边面 */
+        }
+        .picList li span:nth-of-type(2){
+            left:50px;
+            -webkit-transform-origin: left;
+            -webkit-transform: rotateY(90deg);
+        }
+        .btns{
+            float: right;
+            padding: 10px 0;
+            /* 与上面图片留出间隙 */
+        }
+        .btns li{
+            width: 40px;
+            height: 40px;
+            float: left;
+            border-radius: 50%;
+            background: #000;
+            margin:0 5px;
+            /* 要是用padding，这里就不会变成圆形了 但是这种在IE下有双边距bug*/
+            text-align: center;
+            font:20px/40px Arial italic;
+            color: #fff;
+        }
+        .btns .active{
+            background: orange;
+        }
+      /*  .picList li:nth-of-type(1) a{
+            background-position: 0 0;
+        }
+        .picList li:nth-of-type(8) a{
+            background-position: -350px 0;
+        }*/
+    </style>
+    <script>
+        window.onload =function(){
+            var oPicList = document.getElementsByClassName('picList')[0];
+            var oCss = document.getElementsByClassName('css')[0];
+            var aBtns =document.getElementsByClassName('btns')[0].getElementsByTagName('li');
+            var sLi = '';
+            var aLi = '';/* pic的li */
+            var iLiw =50;
+            var iLength= oPicList.offsetWidth/iLiw;
+            var iCss = '';
+            var iZindex = 0;
+            var iNow = 0;/* 用于className */
+            for(var i = 0;i<iLength;i++) {
+                i> iLength/2?iZindex--:iZindex++;
+               /*要是li的宽度改成其他值，又能看见右边的灰色面了 怎么回事？
+                * ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+                 * */
+                aLi += '<li><a href="#"></a><a href="#"></a><a href="#"></a><a href="#"></a><span></span><span></span></li>';
+                /* 生成li展现整个图片的容器 */
+                iCss += '.picList li:nth-of-type(' + (i + 1) + ') a{background-position: -' + i * iLiw + 'px 0;}'
+                iCss += '.picList li:nth-of-type(' + (i + 1) + '){z-index:'+iZindex+';}'
+
+
+            }
+            oPicList.innerHTML = aLi;
+            oCss.innerHTML +=iCss;
+            sLi = oPicList.children;/* 每条li */
+            for(var i=0; i<aBtns.length;i++){
+                (function(a){
+                    aBtns[a].onclick = function(){
+                        for(var i=0;i<sLi.length;i++){
+                            sLi[i].style.transition = 60+i*60+'ms';
+                            sLi[i].style.WebkitTransform = 'rotateX(-'+a*90+'deg)';
+                            /* 因为是让每条li翻转，而不是ul正体翻转 */
+                        }
+                        this.className = 'active';
+                        aBtns[iNow].className ='';
+                        iNow=a;
+
+                    }
+                })(i)
+            }
+
+        }
+    </script>
+</head>
+<body>
+<div class="wrap"><!- 舞台 -->
+    <ul class="picList"><!-- 容器 -->
+      <!--  <li>
+            <a href="#"></a>
+            <a href="#"></a>
+            <a href="#"></a>
+            <a href="#"></a>
+        &lt;!&ndash; 四张图片存放的位置 &ndash;&gt;
+            <span></span>
+            <span></span>
+        &lt;!&ndash; 两个侧面 &ndash;&gt;
+        </li>-->
+    </ul>
+    <ol class="btns">
+        <li class="active">1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <!--四个按钮 -->
+    </ol>
+
+</div>
+</body>
+</html>

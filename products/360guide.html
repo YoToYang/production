@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{
+            margin: 0px;
+            padding: 0px;
+            background: #000;
+        }
+        .menu{
+            width: 50px;
+            height: 50px;
+            position: fixed;
+            right: 10px;
+            bottom: 10px;
+        }
+        .menu-list{
+            width: 42px;
+            height: 42px;
+            margin: 4px;
+            position: relative;
+        }
+        .menu-list img{
+            border-radius: 21px;
+            position: absolute;/*所有定位根据父级，注意定位的计算*/
+            top: 0px;
+            left: 0px;
+            -webkit-transition: 1s all ease;
+        }
+        .home   {/*错误一：在home里面添加了<img>却是对home添加border-radius，导致图片还是方形 */
+            width: 50px;
+            height: 50px;
+            background: url("img360guide/home.png");
+            border-radius: 25px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            transition: 1s;
+
+        }
+
+    </style>
+</head>
+<body>
+<div class="menu">
+    <div class="menu-list">
+        <img src="img360guide/clos.png" />
+        <img src="img360guide/full.png" />
+        <img src="img360guide/open.png"/>
+        <img src="img360guide/refresh.png"/>
+        <img src="img360guide/prev.png"/>
+    </div>
+    <div class="home"> </div>
+</div>
+<script>
+    var oMenu = document.getElementsByClassName('menu-list')[0];
+    var aImg = oMenu.getElementsByTagName('img');
+    var oHome = document.getElementsByClassName('home')[0];
+    var oR = -200;  /*在上方和左边出现，所以为负的*/
+    var onOff = true;   /* home只有两个状态，所以用开关控制就好*/
+    /*执行顺序：1,2,3,4,5*/
+    oHome.onclick= function () {
+        if(onOff){
+           this.style.WebkitTransform ='rotate(-360deg)';/*点击home旋转，逆时针*/
+            for( var i= 0; i<aImg.length;i++) {
+                aImg[i].style.transition = 60+i*300+"ms";
+                /* 1 */
+                /* 5 */
+                /*每个img旋转出来相会之间的时间的延迟设置;
+                为什么会影响到下面的点击造成延迟？
+                在视频上，下面的点击是设置在这个函数的上面的；
+                但因为这个home的点击事件先发生，所以每个先绑定了这个延迟，造成了下面也有延迟，与代码顺序无关；
+                */
+                aImg[i].style.top = Math.round(oR * Math.cos(22.5 * i / 180 * Math.PI)) + 'px';
+                aImg[i].style.left = Math.round(oR * Math.sin(22.5 * i / 180 * Math.PI)) + 'px';
+                /*里面sin里面用弧度去算，转化度数*/
+                aImg[i].style.WebkitTransform = 'scale(1) rotate(-720deg) ';
+                /*为什么在这里也要写上scale？但是不写，下面小图标点击之后依旧不会再回来得时候再次旋转，
+                下面的小图标点击之后，这个值本来就又变成了scale（1） rotate（-720deg）；为何还要在上面单独再写一次？
+                *但是这个应该是局部函数啊，互相不影响；但是这又是同一个元素上的同一个属性，
+                * 还必须得加上这里的scale，不然影响整个旋转，不知道为什么。。。。。。整个页面就这里没懂了
+                * ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+                * */
+                /*aImg[0].style.top = oR + 'px';
+                aImg[1].style.top = oR * Math.cos(Math.PI * 22.5 / 180);
+                aImg[2].style.top = oR * Math.cos(Math.PI * 22.5 * 2 / 180);
+                aImg[0].style.left = 0;
+                aImg[1].style.left = oR * Math.sin(Math.PI * 22.5 / 180);
+
+                */
+            }
+                onOff = false;/*注意*/
+        } else {/*收回的函数*/
+            /* 4 */
+            this.style.WebkitTransform = 'rotate(0deg)';
+            for (var i = 0; i < aImg.length; i++) {
+                aImg[i].style.transition = 60+(aImg.length-i-1)*300+'ms';/*从出来的最后一个开始收回*/
+                aImg[i].style.top = 0 + 'px';
+                aImg[i].style.left = 0 + 'px';
+                aImg[i].style.WebkitTransform = 'scale(1) rotate(0deg)';
+                /*这里就有必要加scale（1），因为点击之后，恢复初始状态，但是此时是rotate为（0deg)
+                * 再次开始点击的时候，执行上面一段代码
+                * */
+            }
+
+            onOff = !onOff;/*注意*/
+           }
+    }
+
+        for (var i = 0; i < aImg.length; i++) {
+            aImg[i].onclick = function () {
+                /* 2 */
+                this.style.transition = 200+"ms";/*因为上面设置了延迟*/
+                this.style.WebkitTransform = 'scale(2) rotate(-720deg)';
+                this.style.opacity = 0.3;
+                /*点击之后，当完成，移出效果
+                这里思维很乱，这里应该添加时间，我想成了用移除去消掉上面的效果，注意
+                出现的问题没发现的：当点击之后，执行了scale，原来的webkittransform被覆盖掉了
+                所以在回来得时候，添加上它原来的rotate；
+                */
+                this.addEventListener('webkitTransitionEnd',end,false);
+            }
+
+        }
+    function end(){
+        /* 3 */
+        this.style.transition = 60+"ms";/*值要求是要恢复到原来的transition属性*/
+        this.style.WebkitTransform = 'scale(1) rotate(-720deg)';
+        this.style.opacity = 1;
+       this.removeEventListener('webkitTransitionEnd',end,false);
+        /*这里不移除也没关系，当完成0.3，执行这里面的，
+        然后由0.3→1又会触发一次，但是执行之后保持了1，自己就停止触发了*/
+    }
+
+
+  /*  obj.addEventListener('webkitTransitionEnd',function(){},false);*/
+</script>
+</body>
+</html>
